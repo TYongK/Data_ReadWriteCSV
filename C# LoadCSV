@@ -1,0 +1,122 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+using Rhino;
+using Rhino.Geometry;
+
+using Grasshopper;
+using Grasshopper.Kernel;
+using Grasshopper.Kernel.Data;
+using Grasshopper.Kernel.Types;
+
+
+
+/// <summary>
+/// This class will be instantiated on demand by the Script component.
+/// </summary>
+public class Script_Instance : GH_ScriptInstance
+{
+#region Utility functions
+  /// <summary>Print a String to the [Out] Parameter of the Script component.</summary>
+  /// <param name="text">String to print.</param>
+  private void Print(string text) { /* Implementation hidden. */ }
+  /// <summary>Print a formatted String to the [Out] Parameter of the Script component.</summary>
+  /// <param name="format">String format.</param>
+  /// <param name="args">Formatting parameters.</param>
+  private void Print(string format, params object[] args) { /* Implementation hidden. */ }
+  /// <summary>Print useful information about an object instance to the [Out] Parameter of the Script component. </summary>
+  /// <param name="obj">Object instance to parse.</param>
+  private void Reflect(object obj) { /* Implementation hidden. */ }
+  /// <summary>Print the signatures of all the overloads of a specific method to the [Out] Parameter of the Script component. </summary>
+  /// <param name="obj">Object instance to parse.</param>
+  private void Reflect(object obj, string method_name) { /* Implementation hidden. */ }
+#endregion
+
+#region Members
+  /// <summary>Gets the current Rhino document.</summary>
+  private readonly RhinoDoc RhinoDocument;
+  /// <summary>Gets the Grasshopper document that owns this script.</summary>
+  private readonly GH_Document GrasshopperDocument;
+  /// <summary>Gets the Grasshopper script component that owns this script.</summary>
+  private readonly IGH_Component Component;
+  /// <summary>
+  /// Gets the current iteration count. The first call to RunScript() is associated with Iteration==0.
+  /// Any subsequent call within the same solution will increment the Iteration count.
+  /// </summary>
+  private readonly int Iteration;
+#endregion
+
+  /// <summary>
+  /// This procedure contains the user code. Input parameters are provided as regular arguments,
+  /// Output parameters as ref arguments. You don't have to assign output parameters,
+  /// they will have a default value.
+  /// </summary>
+  private void RunScript(string file_Path, bool activate_Toggle, ref object array_Result)
+  {
+    string[,] data_all;
+
+    if(activate_Toggle == true)
+    {
+      data_all = LoadCsv(file_Path);
+    }
+    else
+    {
+      data_all = new string[1, 1];
+      data_all[0, 0] = "NotRead";
+    }
+
+    //declare tree
+    DataTree<string> stringTree = new DataTree<string>();
+    //set up tree
+
+    for (int i = 0; i < data_all.GetLength(0);i++)
+    {
+      GH_Path pth = new GH_Path(i);
+
+      for (int j = 0; j < data_all.GetLength(1);j++)
+      {
+        stringTree.Add(data_all[i, j], pth);
+      }
+    }
+
+    array_Result = stringTree;
+
+  }
+
+  // <Custom additional code> 
+  private string[,] LoadCsv(string filename)
+  {
+    // Get the file's text.
+    string whole_file = System.IO.File.ReadAllText(filename);
+
+    // Split into lines.
+    whole_file = whole_file.Replace('\n', '\r');
+    string[] lines = whole_file.Split(new char[] { '\r' },
+      StringSplitOptions.RemoveEmptyEntries);
+
+    // See how many rows and columns there are.
+    int num_rows = lines.Length;
+    int num_cols = lines[0].Split(',').Length;
+
+    // Allocate the data array.
+    string[,] values = new string[num_rows, num_cols];
+
+    // Load the array.
+    for (int r = 0; r < num_rows; r++)
+    {
+      string[] line_r = lines[r].Split(',');
+      for (int c = 0; c < num_cols; c++)
+      {
+        values[r, c] = line_r[c];
+      }
+    }
+
+    // Return the values.
+    return values;
+  }
+
+  //Resource: http://csharphelper.com/blog/2014/11/read-a-csv-file-into-an-array-in-c/
+  //Resource: http://james-ramsden.com/data-trees-and-c-in-grasshopper/
+  // </Custom additional code> 
+}
