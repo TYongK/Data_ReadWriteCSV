@@ -1,0 +1,107 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+using Rhino;
+using Rhino.Geometry;
+
+using Grasshopper;
+using Grasshopper.Kernel;
+using Grasshopper.Kernel.Data;
+using Grasshopper.Kernel.Types;
+
+using System.IO;
+using System.Text;
+
+/// <summary>
+/// This class will be instantiated on demand by the Script component.
+/// </summary>
+public class Script_Instance : GH_ScriptInstance
+{
+#region Utility functions
+  /// <summary>Print a String to the [Out] Parameter of the Script component.</summary>
+  /// <param name="text">String to print.</param>
+  private void Print(string text) { /* Implementation hidden. */ }
+  /// <summary>Print a formatted String to the [Out] Parameter of the Script component.</summary>
+  /// <param name="format">String format.</param>
+  /// <param name="args">Formatting parameters.</param>
+  private void Print(string format, params object[] args) { /* Implementation hidden. */ }
+  /// <summary>Print useful information about an object instance to the [Out] Parameter of the Script component. </summary>
+  /// <param name="obj">Object instance to parse.</param>
+  private void Reflect(object obj) { /* Implementation hidden. */ }
+  /// <summary>Print the signatures of all the overloads of a specific method to the [Out] Parameter of the Script component. </summary>
+  /// <param name="obj">Object instance to parse.</param>
+  private void Reflect(object obj, string method_name) { /* Implementation hidden. */ }
+#endregion
+
+#region Members
+  /// <summary>Gets the current Rhino document.</summary>
+  private readonly RhinoDoc RhinoDocument;
+  /// <summary>Gets the Grasshopper document that owns this script.</summary>
+  private readonly GH_Document GrasshopperDocument;
+  /// <summary>Gets the Grasshopper script component that owns this script.</summary>
+  private readonly IGH_Component Component;
+  /// <summary>
+  /// Gets the current iteration count. The first call to RunScript() is associated with Iteration==0.
+  /// Any subsequent call within the same solution will increment the Iteration count.
+  /// </summary>
+  private readonly int Iteration;
+#endregion
+
+  /// <summary>
+  /// This procedure contains the user code. Input parameters are provided as regular arguments,
+  /// Output parameters as ref arguments. You don't have to assign output parameters,
+  /// they will have a default value.
+  /// </summary>
+  private void RunScript(DataTree<string> Input, string file_Path, bool activate_Button)
+  {
+
+    string[,] data_all = new string[Input.BranchCount, Input.DataCount / Input.BranchCount];
+
+    for (int i = 0; i < Input.BranchCount; i++)
+    {
+      for (int j = 0; j < Input.DataCount / Input.BranchCount; j++)
+      {
+        data_all[i, j] = Input.Branch(i)[j];
+      }
+    }
+
+    if(activate_Button == true)
+    {
+      string csv = ArrayToCsv(data_all);
+      File.WriteAllText(file_Path, csv);
+    }
+
+
+  }
+
+  // <Custom additional code> 
+  // Convert array data into CSV format.
+  private string ArrayToCsv(string[,] values)
+  {
+    // Get the bounds.
+    int num_rows = values.GetUpperBound(0) + 1;
+    int num_cols = values.GetUpperBound(1) + 1;
+
+    // Convert the array into a CSV string.
+    StringBuilder sb = new StringBuilder();
+    for (int row = 0; row < num_rows; row++)
+    {
+      // Add the first field in this row.
+      sb.Append(values[row, 0]);
+
+      // Add the other fields in this row separated by commas.
+      for (int col = 1; col < num_cols; col++)
+        sb.Append("," + values[row, col]);
+
+      // Move to the next line.
+      sb.AppendLine();
+    }
+
+    // Return the CSV format string.
+    return sb.ToString();
+  }
+
+  //Resource: http://csharphelper.com/blog/2014/11/read-a-csv-file-into-an-array-in-c/
+  // </Custom additional code> 
+}
