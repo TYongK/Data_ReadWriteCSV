@@ -97,16 +97,24 @@ public class Script_Instance : GH_ScriptInstance
 
     // See how many rows and columns there are.
     int num_rows = lines.Length;
-    int num_cols = lines[0].Split(',').Length;
+    List<int> colsList = new List<int>();
+
+    for(int i = 0; i < num_rows; i++)
+    {
+      int num_cols = lines[i].Split(',').Length;
+      colsList.Add(num_cols);
+    }
+
+    int max_num_cols = colsList.Max();
 
     // Allocate the data array.
-    string[,] values = new string[num_rows, num_cols];
+    string[,] values = new string[num_rows, max_num_cols];
 
     // Load the array.
     for (int r = 0; r < num_rows; r++)
     {
       string[] line_r = lines[r].Split(',');
-      for (int c = 0; c < num_cols; c++)
+      for (int c = 0; c < line_r.Length; c++)
       {
         values[r, c] = line_r[c];
       }
@@ -118,5 +126,5 @@ public class Script_Instance : GH_ScriptInstance
 
   //Resource: http://csharphelper.com/blog/2014/11/read-a-csv-file-into-an-array-in-c/
   //Resource: http://james-ramsden.com/data-trees-and-c-in-grasshopper/
-  // </Custom additional code> 
+  // </Custom additional code>
 }
